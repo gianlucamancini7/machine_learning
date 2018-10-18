@@ -24,6 +24,8 @@ def least_squares(y, tx):
     """calculate the least squares."""
     a = tx.T.dot(tx)
     b = tx.T.dot(y)
+#     print(np.info(a))
+#     print(np.info(b))
     return np.linalg.solve(a, b)
 
 def ridge_regression(y, tx, lambda_):
@@ -107,12 +109,6 @@ def stochastic_gradient_descent(
 
     for n_iter in range(max_iters):
         for y_batch, tx_batch in batch_iter(y, tx,batch_size=batch_size, num_batches=1):
-            # compute a stochastic gradient and loss
-#             print(y_batch.shape)
-#             print('')
-#             print(tx_batch.shape)
-#             print('')
-#             print(w.shape)
             grad, _ = compute_stoch_gradient(y_batch, tx_batch, w)
             # update w through the stochastic gradient update
             w = w - gamma * grad
@@ -122,7 +118,7 @@ def stochastic_gradient_descent(
             ws.append(w)
             losses.append(loss)
 
-        print("SGD({bi}/{ti}): loss={l}, w0={w0}, w1={w1}".format(
+        print("SGD({bi}/{ti}): loss={l}, wavg={w0}, w1={w1}".format(
               bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
     return losses, ws
 
