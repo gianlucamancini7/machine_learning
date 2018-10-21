@@ -188,4 +188,8 @@ def cross_validation_visualization(lambds, mse_tr, mse_te):
     plt.legend(loc=2)
     plt.grid(True)
     plt.savefig("cross_validation")
-
+    
+def standardize(x):
+    
+    x=(x-np.mean(x, axis=0))/np.std(x, axis=0)
+    return x
