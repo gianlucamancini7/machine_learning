@@ -2,6 +2,7 @@
 """some helper functions."""
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def build_poly(input_data, degree):
@@ -122,6 +123,69 @@ def stochastic_gradient_descent(
               bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
     return losses, ws
 
+#Cross Validation
+def build_k_indices(y, k_fold, seed):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
+def cross_validation_ridge(y, x, k_indices, k, lambda_):
+    """return the loss of ridge regression."""
+
+    test_ind=k_indices[k]
+    total_ind=np.ravel(k_indices)
+    xi_test=x[test_ind]
+    yi_test=y[test_ind]
+    train_ind=total_ind[np.logical_not(np.isin(total_ind,test_ind))]
+    xi_train=x[train_ind]
+    yi_train=y[train_ind]
+
+#     txi_test=build_poly(xi_test,degree)
+#     txi_train=build_poly(xi_train,degree)
+
+    wsi_train=ridge_regression(yi_train,xi_train,lambda_)
+
+    loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
+    loss_te=np.sqrt(2*compute_mse(yi_test,xi_test,wsi_train))
+    
+    return loss_tr, loss_te,wsi_train
+
+def cross_validation_least_squares(y, x, k_indices, k):
+    """return the loss of ridge regression."""
+
+    test_ind=k_indices[k]
+    total_ind=np.ravel(k_indices)
+    xi_test=x[test_ind]
+    yi_test=y[test_ind]
+    train_ind=total_ind[np.logical_not(np.isin(total_ind,test_ind))]
+    xi_train=x[train_ind]
+    yi_train=y[train_ind]
+
+#     txi_test=build_poly(xi_test,degree)
+#     txi_train=build_poly(xi_train,degree)
+
+    wsi_train=least_squares(yi_train,xi_train,)
+
+    loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
+    loss_te=np.sqrt(2*compute_mse(yi_test,xi_test,wsi_train))
+    
+    return loss_tr, loss_te,wsi_train
 
 
+
+def cross_validation_visualization(lambds, mse_tr, mse_te):
+    """visualization the curves of mse_tr and mse_te."""
+    plt.semilogx(lambds, mse_tr, marker=".", color='b', label='train error')
+    plt.semilogx(lambds, mse_te, marker=".", color='r', label='test error')
+    plt.xlabel("lambda")
+    plt.ylabel("rmse")
+    plt.title("cross validation")
+    plt.legend(loc=2)
+    plt.grid(True)
+    plt.savefig("cross_validation")
 
