@@ -207,6 +207,7 @@ def calculate_loss(y, tx, w):
 
 def calculate_gradient(y, tx, w):
     """compute the gradient of loss."""
+    print ('thing inside', sigmoid(tx.dot(w)))
     return tx.T.dot(sigmoid(tx.dot(w))-y)
 
 def calculate_hessian(y, tx, w):
@@ -233,6 +234,7 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     loss, grad, H=penalized_logistic_regression(y, tx, w,lambda_)
     
     # update w: TODO
-    w=w-np.linalg.solve(H, grad)
+    w=w-gamma*np.linalg.solve(H, grad)
+    print ('w',w)
     return loss, w
 
