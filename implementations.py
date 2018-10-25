@@ -193,3 +193,46 @@ def standardize(x):
     
     x=(x-np.mean(x, axis=0))/np.std(x, axis=0)
     return x
+
+#Logistic
+def sigmoid(t):
+    """apply sigmoid function on t."""
+    return (np.exp(t))/(1+(np.exp(t)))
+
+def calculate_loss(y, tx, w):
+    """compute the cost by negative log likelihood."""
+    ### RMSE or other error??    
+    loss=np.sum(np.log(1+np.exp(tx.dot(w)))-y*(tx.dot(w)))
+    return loss
+
+def calculate_gradient(y, tx, w):
+    """compute the gradient of loss."""
+    return tx.T.dot(sigmoid(tx.dot(w))-y)
+
+def calculate_hessian(y, tx, w):
+    """return the hessian of the loss function."""
+    # calculate hessian
+    S=np.diag((sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))).T[0])
+    H=tx.T.dot(S).dot(tx) 
+    return H
+
+def penalized_logistic_regression(y, tx, w, lambda_):
+    """return the loss, gradient, and hessian."""
+    # return loss, gradient, and hessian: TODO
+    loss=calculate_loss(y, tx, w)+(lambda_*0.5*(w.T.dot(w)))
+    grad=calculate_gradient(y, tx, w)+lambda_*w
+    H=calculate_hessian(y, tx, w)+lambda_*np.eye(tx.shape[1])   
+    return loss, grad, H
+
+def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
+    """
+    Do one step of gradient descent, using the penalized logistic regression.
+    Return the loss and updated w.
+    """
+    # return loss, gradient and hessian
+    loss, grad, H=penalized_logistic_regression(y, tx, w,lambda_)
+    
+    # update w: TODO
+    w=w-np.linalg.solve(H, grad)
+    return loss, w
+
