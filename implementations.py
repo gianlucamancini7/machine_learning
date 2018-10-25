@@ -189,7 +189,7 @@ def cross_validation_visualization(lambds, mse_tr, mse_te):
     plt.grid(True)
     plt.savefig("cross_validation")
     
-def standardize(x):
+def standardize_personal(x):
     
     x=(x-np.mean(x, axis=0))/np.std(x, axis=0)
     return x
@@ -207,7 +207,6 @@ def calculate_loss(y, tx, w):
 
 def calculate_gradient(y, tx, w):
     """compute the gradient of loss."""
-    print ('thing inside', sigmoid(tx.dot(w)))
     return tx.T.dot(sigmoid(tx.dot(w))-y)
 
 def calculate_hessian(y, tx, w):
@@ -220,7 +219,7 @@ def calculate_hessian(y, tx, w):
 def penalized_logistic_regression(y, tx, w, lambda_):
     """return the loss, gradient, and hessian."""
     # return loss, gradient, and hessian: TODO
-    loss=calculate_loss(y, tx, w)+(lambda_*0.5*(w.T.dot(w)))
+    loss=calculate_loss(y, tx, w)+(lambda_*0.5*(w.T.dot(w)))[0][0]
     grad=calculate_gradient(y, tx, w)+lambda_*w
     H=calculate_hessian(y, tx, w)+lambda_*np.eye(tx.shape[1])   
     return loss, grad, H
@@ -235,6 +234,6 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     
     # update w: TODO
     w=w-gamma*np.linalg.solve(H, grad)
-    print ('w',w)
+    #print ('w',w)
     return loss, w
 
