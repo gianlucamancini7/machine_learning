@@ -155,8 +155,8 @@ def cross_validation_ridge(y, x, k_indices, k, lambda_):
 
     wsi_train=ridge_regression(yi_train,xi_train,lambda_)
 
-    loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
-    loss_te=np.sqrt(2*compute_mse(yi_test,xi_test,wsi_train))
+    loss_tr=compute_mse(yi_train,xi_train,wsi_train)
+    loss_te=compute_mse(yi_test,xi_test,wsi_train)
     
     return loss_tr, loss_te,wsi_train
 
@@ -176,8 +176,8 @@ def cross_validation_least_squares(y, x, k_indices, k):
 
     wsi_train=least_squares(yi_train,xi_train,)
 
-    loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
-    loss_te=np.sqrt(2*compute_mse(yi_test,xi_test,wsi_train))
+    loss_tr=compute_mse(yi_train,xi_train,wsi_train)
+    loss_te=compute_mse(yi_test,xi_test,wsi_train)
     
     return loss_tr, loss_te,wsi_train
 
