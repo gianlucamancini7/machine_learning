@@ -249,3 +249,10 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     #print ('w',w)
     return loss, w
 
+def predict_labels_modified(weights, data):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    y_pred[np.where(y_pred <= 0)] = -10
+    y_pred[np.where(y_pred > 0)] = 10
+    
+    return y_pred
