@@ -2,7 +2,8 @@
 """some helper functions."""
 
 import numpy as np
-import matplotlib.pyplot as plt
+
+
 
 
 def build_poly(input_data, degree):
@@ -100,8 +101,7 @@ def compute_stoch_gradient(y, tx, w):
     return grad, err
 
 
-def stochastic_gradient_descent(
-        y, tx, initial_w, batch_size, max_iters, gamma):
+def stochastic_gradient_descent(y, tx, initial_w, batch_size, max_iters, gamma):
     """Stochastic gradient descent."""
     # Define parameters to store w and loss
     ws = [initial_w]
@@ -145,9 +145,6 @@ def cross_validation_ridge(y, x, k_indices, k, lambda_):
     xi_train=x[train_ind]
     yi_train=y[train_ind]
 
-#     txi_test=build_poly(xi_test,degree)
-#     txi_train=build_poly(xi_train,degree)
-
     wsi_train=ridge_regression(yi_train,xi_train,lambda_)
 
     loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
@@ -178,17 +175,7 @@ def cross_validation_least_squares(y, x, k_indices, k):
 
 
 
-def cross_validation_visualization(lambds, mse_tr, mse_te):
-    """visualization the curves of mse_tr and mse_te."""
-    plt.semilogx(lambds, mse_tr, marker=".", color='b', label='train error')
-    plt.semilogx(lambds, mse_te, marker=".", color='r', label='test error')
-    plt.xlabel("lambda")
-    plt.ylabel("rmse")
-    plt.title("cross validation")
-    plt.legend(loc=2)
-    plt.grid(True)
-    plt.savefig("cross_validation")
-    
+
 def standardize_personal(x):
     
     x=(x-np.mean(x, axis=0))/np.std(x, axis=0)
