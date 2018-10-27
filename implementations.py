@@ -213,6 +213,7 @@ def calculate_hessian(y, tx, w):
     """return the hessian of the loss function."""
     # calculate hessian
     S=np.diag((sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))).T[0])
+#     a=sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))
     H=tx.T.dot(S).dot(tx) 
     return H
 
@@ -233,7 +234,8 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     loss, grad, H=penalized_logistic_regression(y, tx, w,lambda_)
     
     # update w: TODO
-    w=w-gamma*np.linalg.solve(H, grad)
+#     w=w-gamma*np.linalg.solve(H, grad)
+    w=w-gamma*grad
     #print ('w',w)
     return loss, w
 
