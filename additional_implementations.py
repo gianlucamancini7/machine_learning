@@ -4,6 +4,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def polynomial_features_simple(tx, order):
+    mat=np.polynomial.polynomial.polyvander(tx, order)
+    mat=np.reshape(mat,(tx.shape[0],(1+order)*tx.shape[1]))
+    mat=np.delete(mat,np.arange(order+1,(1+order)*tx.shape[1],order+1),axis=1)
+    return mat
 
 def build_poly(input_data, degree):
     """polynomial basis functions for input data x, for j=0 up to j=degree."""
