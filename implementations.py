@@ -19,7 +19,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma,keeptrack=False, log_inf
         w = w - gamma * grad
         # log info
         if log_info:
-            if iter % 100 == 0:
+            if n_iter % 100 == 0:
                 print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))  
         # store w and loss
         ws.append(w)
@@ -45,7 +45,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma, batch_size=1,keeptrack
             w = w - gamma * grad
             # log info
             if log_info:
-                if iter % 100 == 0:
+                if n_iter % 100 == 0:
                     print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))  
             # store w and loss
             ws.append(w)
@@ -88,7 +88,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, keeptrack=False, con
         loss, w = learning_by_newton_method(y, tx, w, gamma)
         # log info
         if log_info:
-            if iter % 100 == 0:
+            if n_iter % 100 == 0:
                 print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))   
         # store w and loss
         ws.append(w)
@@ -115,7 +115,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, keeptra
         loss, w = learning_by_penalized_gradient(y, tx, w, gamma, lambda_)
         # log info
         if log_info:
-            if iter % 100 == 0:
+            if n_iter % 100 == 0:
                 print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))   
         # store w and loss
         ws.append(w)
