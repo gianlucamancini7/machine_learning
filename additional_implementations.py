@@ -4,6 +4,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def get_best_parameters(w0, w1, losses):
+    """Get the best w from the result of grid search."""
+    min_row, min_col = np.unravel_index(np.argmin(losses), losses.shape)
+    return losses[min_row, min_col], w0[min_row], w1[min_col]
+
 def polynomial_features_simple(tx, order):
     mat=np.polynomial.polynomial.polyvander(tx, order)
     mat=np.reshape(mat,(tx.shape[0],(1+order)*tx.shape[1]))
