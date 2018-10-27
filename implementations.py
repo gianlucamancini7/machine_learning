@@ -3,70 +3,144 @@
 
 import numpy as np
 
+#REQUIRED IMPLEMENTED ML METHODS
+
+def least_squares_GD(y, tx, initial_w, max_iters, gamma,keeptrack=False, log_info=False):
+    """Gradient descent"""
+    # Define parameters to store w and loss
+    ws = [initial_w]
+    losses = []
+    w = initial_w
+    for n_iter in range(max_iters):
+        # compute loss, gradient
+        grad, _ = compute_gradient(y, tx, w)
+        loss = calculate_mse(err)
+        # update w through the gradient update
+        w = w - gamma * grad
+        # log info
+        if log_info:
+            if iter % 100 == 0:
+                print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))  
+        # store w and loss
+        ws.append(w)
+        losses.append(loss)
+    if keeptrack:
+        return ws, losses
+    else:
+        return w, loss
 
 
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma, batch_size=1,keeptrack=False,log_info=False):
+    """Stochastic gradient descent"""
+    # Define parameters to store w and loss
+    ws = [initial_w]
+    losses = []
+    w = initial_w
+    for n_iter in range(max_iters):
+        for y_batch, tx_batch in batch_iter(y, tx,batch_size=batch_size, num_batches=1):
+            # compute loss, gradient
+            grad, _ = compute_stoch_gradient(y_batch, tx_batch, w)
+            loss = compute_mse(y, tx, w)
+            # update w through the stochastic gradient update
+            w = w - gamma * grad
+            # log info
+            if log_info:
+                if iter % 100 == 0:
+                    print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))  
+            # store w and loss
+            ws.append(w)
+            losses.append(loss)
+    if keeptrack:
+        return ws, losses
+    else:
+        return w, loss
 
-def build_poly(input_data, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree."""
     
-    ravel_input_data=np.ravel(input_data.T)
-    tx=np.vander(ravel_input_data, N=degree+1, increasing=True)
-    
-    #number of points, number of degrees plus 1, number of features
-    tx=np.reshape(tx,(input_data.shape[1],input_data.shape[0],degree+1))
-    return tx
+def least_squares(y, tx):
+    """Least squares"""
+    a = tx.T.dot(tx)
+    b = tx.T.dot(y)
+    w = np.linalg.solve(a, b)
+    loss = compute_mse(y, tx, w)
+    return w, loss
 
+
+def ridge_regression(y, tx, lambda_):
+    """Ridge regression"""
+    # Definition of Lambda as in lectures
+    aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
+    a = tx.T.dot(tx) + aI
+    b = tx.T.dot(y)
+    w = np.linalg.solve(a, b)
+    loss = compute_mse(y, tx, w)
+    return w, loss
+
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma, keeptrack=False, convergence_stop=False,threshold = 1e-8, log_info=False):
+    """Logistic regression using Newton method"""   
+    # Define parameters to store w and loss
+    ws = [initial_w]
+    losses = []
+    w = initial_w
+    #Start the logistic regression
+    for n_iter in range(max_iters):
+        # get loss and update w.
+        loss, w = learning_by_newton_method(y, tx, w, gamma)
+        # log info
+        if log_info:
+            if iter % 100 == 0:
+                print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))   
+        # store w and loss
+        ws.append(w)
+        losses.append(loss)
+        # converge criterion
+        if convergence_stop:
+            if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
+                break
+    if keeptrack:
+        return ws, losses
+    else:
+        return w, loss
+    
+
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, keeptrack=False, convergence_stop=False,threshold = 1e-8, log_info=False):
+    """Regularized logistic regression using Newton method"""   
+    # Define parameters to store w and loss
+    ws = [initial_w]
+    losses = []
+    w = initial_w
+    #Start the regularized logistic regression
+    for n_iter in range(max_iters):
+        # get loss and update w.
+        loss, w = learning_by_penalized_gradient(y, tx, w, gamma, lambda_)
+        # log info
+        if log_info:
+            if iter % 100 == 0:
+                print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))   
+        # store w and loss
+        ws.append(w)
+        losses.append(loss)
+        # converge criterion
+        if convergence_stop:
+            if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
+                break
+    if keeptrack:
+        return ws, losses
+    else:
+        return w, loss
+
+
+### ADDITIONAL FUNCTION FOR ML METHODS
+
+#General additional function
 def compute_mse(y, tx, w):
     """compute the loss by mse."""
     e = y - tx.dot(w)
     mse = e.dot(e) / (2 * len(e))
     return mse
 
-def least_squares(y, tx):
-    """calculate the least squares."""
-    a = tx.T.dot(tx)
-    b = tx.T.dot(y)
-#     print(np.info(a))
-#     print(np.info(b))
-    return np.linalg.solve(a, b)
 
-def ridge_regression(y, tx, lambda_):
-# definition of Lambda as in lectures
-    """implement ridge regression."""
-    aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
-    a = tx.T.dot(tx) + aI
-    b = tx.T.dot(y)
-    return np.linalg.solve(a, b)
-
-def polynomial_regression(degrees):
-    """Constructing the polynomial basis function expansion of the data,
-       and then running least squares regression."""
-    
-    # define the structure of the figure
-    num_row = 2
-    num_col = 2
-    f, axs = plt.subplots(num_row, num_col)
-
-    for ind, degree in enumerate(degrees):
-        # form dataset to do polynomial regression.
-        tx = build_poly(x, degree)
-
-        # least squares
-        weights = least_squares(y, tx)
-
-        # compute RMSE
-        rmse = np.sqrt(2 * compute_mse(y, tx, weights))
-        print("Processing {i}th experiment, degree={d}, rmse={loss}".format(
-              i=ind + 1, d=degree, loss=rmse))
-        # plot fit
-        plot_fitted_curve(
-            y, x, weights, degree, axs[ind // num_col][ind % num_col])
-    plt.tight_layout()
-    plt.savefig("visualize_polynomial_regression")
-    plt.show()
-
-
-#Stochstics gradient functions
+#Stochstics gradient additional functions
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
     Generate a minibatch iterator for a dataset.
@@ -92,103 +166,19 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
         if start_index != end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
             
-
-            
 def compute_stoch_gradient(y, tx, w):
     """Compute a stochastic gradient for batch data."""
     err = y - tx.dot(w)
     grad = -tx.T.dot(err) / len(err)
     return grad, err
 
-
-def stochastic_gradient_descent(y, tx, initial_w, batch_size, max_iters, gamma):
-    """Stochastic gradient descent."""
-    # Define parameters to store w and loss
-    ws = [initial_w]
-    losses = []
-    w = initial_w
-
-    for n_iter in range(max_iters):
-        for y_batch, tx_batch in batch_iter(y, tx,batch_size=batch_size, num_batches=1):
-            grad, _ = compute_stoch_gradient(y_batch, tx_batch, w)
-            # update w through the stochastic gradient update
-            w = w - gamma * grad
-            # calculate loss
-            loss = compute_mse(y, tx, w)
-            # store w and loss
-            ws.append(w)
-            losses.append(loss)
-
-        print("SGD({bi}/{ti}): loss={l}, wavg={w0}, w1={w1}".format(
-              bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
-    return losses, ws
-
-#Cross Validation
-def build_k_indices(y, k_fold, seed):
-    """build k indices for k-fold."""
-    num_row = y.shape[0]
-    interval = int(num_row / k_fold)
-    np.random.seed(seed)
-    indices = np.random.permutation(num_row)
-    k_indices = [indices[k * interval: (k + 1) * interval]
-                 for k in range(k_fold)]
-    return np.array(k_indices)
-
-def cross_validation_ridge(y, x, k_indices, k, lambda_):
-    """return the loss of ridge regression."""
-
-    test_ind=k_indices[k]
-    total_ind=np.ravel(k_indices)
-    xi_test=x[test_ind]
-    yi_test=y[test_ind]
-    train_ind=total_ind[np.logical_not(np.isin(total_ind,test_ind))]
-    xi_train=x[train_ind]
-    yi_train=y[train_ind]
-
-    wsi_train=ridge_regression(yi_train,xi_train,lambda_)
-
-    loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
-    loss_te=np.sqrt(2*compute_mse(yi_test,xi_test,wsi_train))
-    
-    return loss_tr, loss_te,wsi_train
-
-def cross_validation_least_squares(y, x, k_indices, k):
-    """return the loss of ridge regression."""
-
-    test_ind=k_indices[k]
-    total_ind=np.ravel(k_indices)
-    xi_test=x[test_ind]
-    yi_test=y[test_ind]
-    train_ind=total_ind[np.logical_not(np.isin(total_ind,test_ind))]
-    xi_train=x[train_ind]
-    yi_train=y[train_ind]
-
-#     txi_test=build_poly(xi_test,degree)
-#     txi_train=build_poly(xi_train,degree)
-
-    wsi_train=least_squares(yi_train,xi_train,)
-
-    loss_tr=np.sqrt(2*compute_mse(yi_train,xi_train,wsi_train))
-    loss_te=np.sqrt(2*compute_mse(yi_test,xi_test,wsi_train))
-    
-    return loss_tr, loss_te,wsi_train
-
-
-
-
-def standardize_personal(x):
-    
-    x=(x-np.mean(x, axis=0))/np.std(x, axis=0)
-    return x
-
-#Logistic
+#Logistic regression additional functions
 def sigmoid(t):
     """apply sigmoid function on t."""
     return (np.exp(t))/(1+(np.exp(t)))
 
 def calculate_loss(y, tx, w):
-    """compute the cost by negative log likelihood."""
-    ### RMSE or other error??    
+    """compute the cost by negative log likelihood."""   
     loss=np.sum(np.log(1+np.exp(tx.dot(w)))-y*(tx.dot(w)))
     return loss
 
@@ -206,7 +196,7 @@ def calculate_hessian(y, tx, w):
 
 def penalized_logistic_regression(y, tx, w, lambda_):
     """return the loss, gradient, and hessian."""
-    # return loss, gradient, and hessian: TODO
+    # return loss, gradient, and hessian
     loss=calculate_loss(y, tx, w)+(lambda_*0.5*(w.T.dot(w)))[0][0]
     grad=calculate_gradient(y, tx, w)+lambda_*w
     H=calculate_hessian(y, tx, w)+lambda_*np.eye(tx.shape[1])   
@@ -219,10 +209,25 @@ def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     """
     # return loss, gradient and hessian
     loss, grad, H=penalized_logistic_regression(y, tx, w,lambda_)
-    
-    # update w: TODO
-#     w=w-gamma*np.linalg.solve(H, grad)
+    # update w
     w=w-gamma*grad
-    #print ('w',w)
     return loss, w
 
+def learning_by_newton_method(y, tx, w):
+    """
+    Do one step on Newton's method.
+    return the loss and updated w.
+    """
+    # return loss, gradient and hessian
+    loss, grad, H=logistic_regression_newton(y, tx, w)  
+    # update w: TODO
+    w=w-np.linalg.solve(H, grad)
+    return loss, w
+
+def logistic_regression_newton(y, tx, w):
+    """return the loss, gradient, and hessian."""
+    # return loss, gradient, and hessian: TODO
+    loss=calculate_loss(y, tx, w)
+    grad=calculate_gradient(y, tx, w)
+    H=calculate_hessian(y, tx, w)    
+    return loss, grad, H
