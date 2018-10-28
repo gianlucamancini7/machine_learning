@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""All the operations performed to operate the Principal
+    component analysis on the training dataset and the ones
+    to be applied on the test dataset"""
 
 import pandas as pd
 import numpy as np

@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
-"""some helper functions."""
+"""All the fuction needed and coded for predicting the values 
+    in the run files add for all the other trials performed to 
+    finalize the answer."""
 
 import numpy as np
 import matplotlib.pyplot as plt
 import implementations
+
+def assign_y_values(df, logistic=False):
+    y=np.array(df['Prediction'])
+    y[np.where(y=='b')] = -1.
+    y[np.where(y=='s')] = 1.
+    if logistic:
+        y[np.where(y==-1)] = 0    
+    y=y.astype('float')
+    return y
 
 def clean_pred_Id(df):
     return df.drop(columns=['Prediction', 'Id'])
@@ -21,15 +32,27 @@ def polynomial_features_simple(tx, order):
     mat=np.delete(mat,np.arange(order+1,(1+order)*tx.shape[1],order+1),axis=1)
     return mat
 
-def build_poly(input_data, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree."""
-    
-    ravel_input_data=np.ravel(input_data.T)
-    tx=np.vander(ravel_input_data, N=degree+1, increasing=True)
-    
-    #number of points, number of degrees plus 1, number of features
-    tx=np.reshape(tx,(input_data.shape[1],input_data.shape[0],degree+1))
-    return tx
+def poly_various_features_simple(tx, order, other_order, gon=True, log=True):
+    mat=np.polynomial.polynomial.polyvander(tx, order)
+    mat=np.reshape(mat,(tx.shape[0],(1+order)*tx.shape[1]))
+    mat=np.delete(mat,np.arange(order+1,(1+order)*tx.shape[1],order+1),axis=1)
+    if log:
+        for i in other_order:
+            mat=np.hstack((mat,np.log(tx*i)))
+    if gon:
+        for i in other_order:
+            mat=np.hstack((mat,np.sin(tx*i)))
+            mat=np.hstack((mat,np.cos(tx*i)))
+    return mat
+
+def polynomial_features(tx, deg):
+    tx = np.asarray(tx).T[np.newaxis]
+    n = tx.shape[1]
+    p_mat = np.tile(np.arange(deg + 1), (n, 1)).T[..., np.newaxis]
+    tX = np.power(tx, p_mat)
+    I = np.indices((deg + 1, ) * n).reshape((n, (deg + 1) ** n)).T
+    Fin = np.product(np.diagonal(tX[I], 0, 1, 2), axis=2)
+    return Fin.T
 
 def compute_mse(y, tx, w):
     """compute the loss by mse."""
@@ -37,48 +60,6 @@ def compute_mse(y, tx, w):
     mse = e.dot(e) / (2 * len(e))
     return mse
 
-def least_squares(y, tx):
-    """calculate the least squares."""
-    a = tx.T.dot(tx)
-    b = tx.T.dot(y)
-#     print(np.info(a))
-#     print(np.info(b))
-    return np.linalg.solve(a, b)
-
-def ridge_regression(y, tx, lambda_):
-# definition of Lambda as in lectures
-    """implement ridge regression."""
-    aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
-    a = tx.T.dot(tx) + aI
-    b = tx.T.dot(y)
-    return np.linalg.solve(a, b)
-
-def polynomial_regression(degrees):
-    """Constructing the polynomial basis function expansion of the data,
-       and then running least squares regression."""
-    
-    # define the structure of the figure
-    num_row = 2
-    num_col = 2
-    f, axs = plt.subplots(num_row, num_col)
-
-    for ind, degree in enumerate(degrees):
-        # form dataset to do polynomial regression.
-        tx = build_poly(x, degree)
-
-        # least squares
-        weights = least_squares(y, tx)
-
-        # compute RMSE
-        rmse = np.sqrt(2 * compute_mse(y, tx, weights))
-        print("Processing {i}th experiment, degree={d}, rmse={loss}".format(
-              i=ind + 1, d=degree, loss=rmse))
-        # plot fit
-        plot_fitted_curve(
-            y, x, weights, degree, axs[ind // num_col][ind % num_col])
-    plt.tight_layout()
-    plt.savefig("visualize_polynomial_regression")
-    plt.show()
 
 
 #Stochstics gradient functions
@@ -169,6 +150,18 @@ def cross_validation_ridge(y, x, k_indices, k, lambda_):
     
     return loss_tr, loss_te,wsi_train
 
+def cross_validation_ridge_loop(y, tx, lambda_, k_fold, seed=1):
+    k_indices=build_k_indices(y, k_fold, seed)
+    mse_tr = []
+    mse_te = []
+    wsi_train_lst=[]
+    for k in range(k_fold):
+        loss_tr, loss_te,wsi_train=cross_validation_ridge(y, tx, k_indices, k, lambda_)
+        mse_tr.append(loss_tr)
+        mse_te.append(loss_te)
+        wsi_train_lst.append(wsi_train)
+    return  np.mean(wsi_train_lst, axis=0), np.mean(mse_tr), np.mean(mse_te)
+
 def cross_validation_least_squares(y, x, k_indices, k):
     """return the loss of ridge regression."""
 
@@ -179,9 +172,6 @@ def cross_validation_least_squares(y, x, k_indices, k):
     train_ind=total_ind[np.logical_not(np.isin(total_ind,test_ind))]
     xi_train=x[train_ind]
     yi_train=y[train_ind]
-
-#     txi_test=build_poly(xi_test,degree)
-#     txi_train=build_poly(xi_train,degree)
 
     wsi_train=least_squares(yi_train,xi_train,)
 
@@ -214,54 +204,40 @@ def standardize_test(x, mean_train, std_train):
     return x
 
 #Logistic
-def sigmoid(t):
-    """apply sigmoid function on t."""
-    return (np.exp(t))/(1+(np.exp(t)))
-
-def calculate_loss(y, tx, w):
-    """compute the cost by negative log likelihood."""
-    ### RMSE or other error??    
-    loss=np.sum(np.log(1+np.exp(tx.dot(w)))-y*(tx.dot(w)))
-    return loss
-
-def calculate_gradient(y, tx, w):
-    """compute the gradient of loss."""
-    return tx.T.dot(sigmoid(tx.dot(w))-y)
-
-def calculate_hessian(y, tx, w):
-    """return the hessian of the loss function."""
-    # calculate hessian
-    S=np.diag((sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))).T[0])
-#     a=sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))
-    H=tx.T.dot(S).dot(tx) 
-    return H
-
-def penalized_logistic_regression(y, tx, w, lambda_):
-    """return the loss, gradient, and hessian."""
-    # return loss, gradient, and hessian: TODO
-    loss=calculate_loss(y, tx, w)+(lambda_*0.5*(w.T.dot(w)))[0][0]
-    grad=calculate_gradient(y, tx, w)+lambda_*w
-    H=calculate_hessian(y, tx, w)+lambda_*np.eye(tx.shape[1])   
-    return loss, grad, H
-
-def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
-    """
-    Do one step of gradient descent, using the penalized logistic regression.
-    Return the loss and updated w.
-    """
-    # return loss, gradient and hessian
-    loss, grad, H=penalized_logistic_regression(y, tx, w,lambda_)
-    
-    # update w: TODO
-#     w=w-gamma*np.linalg.solve(H, grad)
-    w=w-gamma*grad
-    #print ('w',w)
-    return loss, w
-
-def predict_labels_modified(weights, data):
-    """Generates class predictions given weights, and a test data matrix"""
-    y_pred = np.dot(data, weights)
-    y_pred[np.where(y_pred <= 0)] = -10
-    y_pred[np.where(y_pred > 0)] = 10
-    
-    return y_pred
+#def sigmoid(t):
+#    """apply sigmoid function on t."""
+#    return (np.exp(t))/(1+(np.exp(t)))
+#
+#def calculate_loss(y, tx, w):
+#    """compute the cost by negative log likelihood."""
+#    ### RMSE or other error??    
+#    loss=np.sum(np.log(1+np.exp(tx.dot(w)))-y*(tx.dot(w)))
+#    return loss
+#
+#def calculate_gradient(y, tx, w):
+#    """compute the gradient of loss."""
+#    return tx.T.dot(sigmoid(tx.dot(w))-y)
+#
+#def calculate_hessian(y, tx, w):
+#    """return the hessian of the loss function."""
+#    # calculate hessian
+#    S=np.diag((sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))).T[0])
+##     a=sigmoid(tx.dot(w))*(1-sigmoid(tx.dot(w)))
+#    H=tx.T.dot(S).dot(tx) 
+#    return H
+#
+#def penalized_logistic_regression(y, tx, w, lambda_):
+#    """return the loss, gradient, and hessian."""
+#    # return loss, gradient, and hessian: TODO
+#    loss=calculate_loss(y, tx, w)+(lambda_*0.5*(w.T.dot(w)))[0][0]
+#    grad=calculate_gradient(y, tx, w)+lambda_*w
+#    H=calculate_hessian(y, tx, w)+lambda_*np.eye(tx.shape[1])   
+#    return loss, grad, H
+#
+#def predict_labels_modified(weights, data):
+#    """Generates class predictions given weights, and a test data matrix"""
+#    y_pred = np.dot(data, weights)
+#    y_pred[np.where(y_pred <= 0)] = -10
+#    y_pred[np.where(y_pred > 0)] = 10
+#    
+#    return y_pred

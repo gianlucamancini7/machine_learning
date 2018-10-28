@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""some helper functions."""
+"""Required solution method function together with some more basic 
+    ones needed for them"""
 
 import numpy as np
 
