@@ -115,7 +115,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, keeptra
         loss, w = learning_by_penalized_gradient(y, tx, w, gamma, lambda_)
         # log info
         if log_info:
-            if n_iter % 100 == 0:
+            if n_iter % 1 == 0:
                 print("Current iteration={i}, loss={l}".format(i=n_iter, l=loss))   
         # store w and loss
         ws.append(w)

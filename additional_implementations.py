@@ -3,10 +3,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import implementations
 
-def get_best_parameters(w0, w1, losses):
+def get_best_parameters(w0, w1, losses,return_idx=False):
     """Get the best w from the result of grid search."""
     min_row, min_col = np.unravel_index(np.argmin(losses), losses.shape)
+    if return_idx:
+        return losses[min_row, min_col], w0[min_row], w1[min_col] , min_row, min_col
     return losses[min_row, min_col], w0[min_row], w1[min_col]
 
 def polynomial_features_simple(tx, order):
@@ -144,7 +147,7 @@ def build_k_indices(y, k_fold, seed):
                  for k in range(k_fold)]
     return np.array(k_indices)
 
-def cross_validation_ridge_old(y, x, k_indices, k, lambda_):
+def cross_validation_ridge(y, x, k_indices, k, lambda_):
     """return the loss of ridge regression."""
 
     test_ind=k_indices[k]
@@ -155,10 +158,8 @@ def cross_validation_ridge_old(y, x, k_indices, k, lambda_):
     xi_train=x[train_ind]
     yi_train=y[train_ind]
 
-#     txi_test=build_poly(xi_test,degree)
-#     txi_train=build_poly(xi_train,degree)
 
-    wsi_train=ridge_regression(yi_train,xi_train,lambda_)
+    wsi_train,_=implementations.ridge_regression(yi_train,xi_train,lambda_)
 
     loss_tr=compute_mse(yi_train,xi_train,wsi_train)
     loss_te=compute_mse(yi_test,xi_test,wsi_train)
