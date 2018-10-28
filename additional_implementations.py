@@ -5,6 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import implementations
 
+def clean_pred_Id(df):
+    return df.drop(columns=['Prediction', 'Id'])
+
 def get_best_parameters(w0, w1, losses,return_idx=False):
     """Get the best w from the result of grid search."""
     min_row, min_col = np.unravel_index(np.argmin(losses), losses.shape)
@@ -200,9 +203,14 @@ def cross_validation_visualization(lambds, mse_tr, mse_te):
     plt.grid(True)
     plt.savefig("cross_validation")
     
-def standardize_personal(x):
-    
-    x=(x-np.mean(x, axis=0))/np.std(x, axis=0)
+def standardize_personal(x): 
+    mean=np.mean(x, axis=0)
+    std=np.std(x, axis=0)
+    x=(x-mean)/std
+    return x, mean, std
+
+def standardize_test(x, mean_train, std_train):
+    x=(x-mean_train)/std_train
     return x
 
 #Logistic
