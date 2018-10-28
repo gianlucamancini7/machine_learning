@@ -196,8 +196,8 @@ def cross_validation_visualization(lambds, mse_tr, mse_te):
 def standardize_personal(x): 
     mean=np.mean(x, axis=0)
     std=np.std(x, axis=0)
-    x=(x-mean)/std
-    return x, mean, std
+    out=(x-mean)/std
+    return out, mean, std
 
 def standardize_test(x, mean_train, std_train):
     x=(x-mean_train)/std_train

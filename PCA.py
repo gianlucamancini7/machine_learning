@@ -9,7 +9,6 @@ from additional_implementations import *
 
 def perform_PCA(df,number_pa):
     features = df.columns.values
-    df_std=pd.DataFrame()
     df_std, mean, std=standardize_personal(df)
     cov_df_std=np.cov(df_std.T)
     eig_vals, eig_vecs = np.linalg.eig(cov_df_std)

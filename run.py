@@ -14,7 +14,7 @@ from zipfile import ZipFile
 # import helping functions from the implementation file
 # from proj1_helpers import load_csv_data
 from proj1_helpers import *
-#↨import implementations
+#import implementations
 from additional_implementations import *
 import physics as phy
 
@@ -38,6 +38,7 @@ df_train_selection, median = phy.physics_train(df_train_selection)
 y_train_selection=assign_y_values(df_train)
 
 #Run Optimization algorithm 
+#Select the precision of the search the logspace and the linspace stepsize can be modified
 lambdas=np.logspace(-10,-1,20)
 degrees=np.linspace(1,15,15).astype('int')
 k_fold=4
