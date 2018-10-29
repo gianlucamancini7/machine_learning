@@ -8,9 +8,9 @@ Authors: Gianluca Mancini and Tullio Nutta
 
 run.py = code of the best submission. Automatically creates a submission file with named ‘Group Higgs_Garrix Submission’. Can be directly run from the console (medium/long run time, good accuracy) or opened and mofyfied where suggested by the comments.
 
-PCA.py = functions needed to perform Principal Component Analysis on a database and to predict the labels in the components space 
+PCA.py = functions needed to perform Principal Component Analysis on a database and to predict the labels in the components space (Functionns referring to Feature Space 2)
 
-physics.py = function needed to perform the physics reasoned feature selection on both train and test dataset
+physics.py = function needed to perform the physics reasoned feature selection on both train and test dataset (Functionns referring to Feature Space 1)
 
 implementations.py = Required solution method function together with some more basic ones needed for them.
 
